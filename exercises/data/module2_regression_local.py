@@ -22,6 +22,14 @@ training_data_df.head()
 scaler = MinMaxScaler(feature_range=(0,1))
 scaled_training = scaler.fit_transform(training_data_df)
 
+from sklearn.externals import joblib
+scaler_filename = "scaler.save"
+joblib.dump(scaler, scaler_filename)
+
+scaler = joblib.load(scaler_filename)
+
+# scaler.inverse_transform(scaled_training)
+
 scaled_training
 
 scaled_training_df = pd.DataFrame(scaled_training,columns=training_data_df.columns.values)
@@ -51,7 +59,7 @@ model.add(Dense(1,activation='linear'))
 
 model.compile(loss='mean_squared_error',optimizer='adam')
 
-history = model.fit(X,y,epochs=50,shuffle=True, validation_split = 0.2, verbose = 0)
+history = model.fit(X,y,epochs=50,shuffle=True, validation_split = 0.2)
 
 scale = scaler.scale_[8]
 
@@ -69,6 +77,19 @@ X_single
 yhat= model.predict(X_single)
 
 yhat
+
+(yhat/scale)+min
+
+single_record = [[3.5,1,	0,	1,	0,	1,	0,	0,	0,	59.99]]
+single_scaled = scaler.transform(single_record)
+single_scaled
+
+import numpy as np
+single_scaled = np.delete(single_scaled, 8, axis = 1)
+
+single_scaled
+
+yhat = model.predict(single_scaled)
 
 (yhat/scale)+min
 
@@ -125,3 +146,38 @@ model.save('regression.h5')
 from keras.models import load_model
 
 model = load_model('regression.h5')
+
+
+
+"""# Challenge: Regression"""
+
+# Load the data
+training_data_df = pd.read_csv('boston.csv')
+
+# median house val
+training_data_df.head()
+
+# Scale the data
+scaler = MinMaxScaler(feature_range=(0,1))
+scaled_training = scaler.fit_transform(training_data_df)
+
+scaled_training_df = pd.DataFrame(scaled_training,columns=training_data_df.columns.values)
+
+X = scaled_training_df.drop(['medv', 'ID'],axis=1).values
+y = scaled_training_df[['medv']].values
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3)
+
+model = Sequential()
+model.add(Dense(50,input_dim=X_train.shape[1],activation='relu'))
+model.add(Dense(100,activation='relu'))
+model.add(Dense(200,activation='relu'))
+model.add(Dense(1,activation='linear'))
+
+model.compile(loss='mean_squared_error',optimizer='adam')
+
+history = model.fit(X_train,y_train,epochs=50,shuffle=True, validation_split = 0.2)
+
+
+
